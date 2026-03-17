@@ -661,7 +661,12 @@ function updateGlobe(){
   if(!globe) return;
 
   // Sync label colors with current city.color
-  globe.htmlElementsData(CITIES);
+  CITIES.forEach(city=>{
+    if(city._labelEl){
+      city._labelEl.style.color=city.color;
+      city._labelEl.style.textShadow=`0 0 6px ${city.color}88,0 1px 3px #000a`;
+    }
+  });
 
   const allPts=[], allArcs=[];
   const r=globalR;
@@ -725,6 +730,7 @@ async function initGlobe(){
         white-space:nowrap;
       `;
       el.textContent=d.name;
+      d._labelEl=el;
       return el;
     })
     .pointsData([])
