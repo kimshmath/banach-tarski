@@ -339,7 +339,7 @@ function nodeColor(d, maxD) {
 
 function ptRadius(k) {
   const n = k === 0 ? 1 : 4 * Math.pow(3, k - 1);
-  return 0.055 / Math.sqrt(n);
+  return 0.11 / Math.sqrt(n);
 }
 
 const DIR = [[1,0],[0,1],[-1,0],[0,-1]];
@@ -841,9 +841,8 @@ window.shuffleColors = function() {
   // Rebuild tree (re-runs nodeColor with new offset)
   rebuildTree(globalR);
 
-  // Update globe HTML labels and points
+  // Update globe labels and points
   if (globe) {
-    globe.htmlElementsData([]).htmlElementsData(CITIES);
     updateGlobe();
   }
 };
