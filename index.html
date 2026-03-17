@@ -74,6 +74,25 @@
       touch-action: none;
     }
 
+    #city-labels {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .city-label {
+      position: absolute;
+      transform: translate(-50%, -180%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: .06em;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
     #homepage-link {
       position: absolute;
       bottom: 13%; right: 6%;
@@ -229,6 +248,7 @@
     <!-- RIGHT: Globe -->
     <div id="right-panel">
       <div id="globe-container"></div>
+      <div id="city-labels"></div>
       <div class="panel-hint">drag · rotate &nbsp;|&nbsp; shift-drag · pan &nbsp;|&nbsp; scroll · zoom</div>
       <div id="loading"><div class="spinner"></div><p>loading atlas…</p></div>
       <a id="homepage-link" href="https://kimsh.kr" target="_blank">kimsh.kr</a>
@@ -258,6 +278,9 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineSegmentsGeometry.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineMaterial.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineSegments2.js"></script>
 <script src="https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 
@@ -332,7 +355,7 @@ function nodeColor(d, maxD) {
 
 function ptRadius(k) {
   const n = k === 0 ? 1 : 4 * Math.pow(3, k - 1);
-  return 0.055 / Math.sqrt(n);
+  return 0.165 / Math.sqrt(n);
 }
 
 const DIR = [[1,0],[0,1],[-1,0],[0,-1]];
@@ -452,13 +475,20 @@ function rebuildTree(R) {
   const ptScale = camZ / 5.0;
 
   if (edgePos.length) {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(edgePos, 3));
-    g.setAttribute('color',    new THREE.Float32BufferAttribute(edgeCol, 3));
-    edgeMesh = new THREE.LineSegments(g, new THREE.LineBasicMaterial({
-      vertexColors: true, transparent: true, opacity: 0.84,
-      blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
+    const geo = new THREE.LineSegmentsGeometry();
+    geo.setPositions(edgePos);
+    geo.setColors(edgeCol);
+    const panel = document.getElementById('left-panel');
+    const mat = new THREE.LineMaterial({
+      vertexColors: true,
+      linewidth: 3.5,          // pixels — broadcast-quality thickness
+      transparent: true,
+      opacity: 0.92,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      resolution: new THREE.Vector2(panel.clientWidth || 800, panel.clientHeight || 600),
+    });
+    edgeMesh = new THREE.LineSegments2(geo, mat);
     edgeMesh.visible = true;
     treeGroup.add(edgeMesh);
   }
@@ -499,6 +529,10 @@ function resizeTree() {
   treeRenderer.setSize(w, h);
   treeCamera.aspect = w / h;
   treeCamera.updateProjectionMatrix();
+  // Update fat-line resolution so linewidth stays in pixels
+  if (edgeMesh && edgeMesh.material && edgeMesh.material.resolution) {
+    edgeMesh.material.resolution.set(w, h);
+  }
 }
 
 // Tree interaction
@@ -686,25 +720,6 @@ async function initGlobe(){
     .polygonSideColor(()=>'rgba(40,60,160,0.12)')
     .polygonStrokeColor(()=>'rgba(70,95,195,0.45)')
     .polygonAltitude(0.003)
-    .htmlElementsData(CITIES)
-    .htmlLat(d=>d.lat).htmlLng(d=>d.lng)
-    .htmlAltitude(0.04)
-    .htmlElement(d=>{
-      const el=document.createElement('div');
-      el.style.cssText=`
-        color:${d.color};
-        font-family:'JetBrains Mono',monospace;
-        font-size:11px;
-        font-weight:400;
-        letter-spacing:.06em;
-        pointer-events:none;
-        user-select:none;
-        text-shadow:0 0 6px ${d.color}88,0 1px 3px #000a;
-        white-space:nowrap;
-      `;
-      el.textContent=d.name;
-      return el;
-    })
     .pointsData([])
     .pointLat(d=>d.lat).pointLng(d=>d.lng)
     .pointColor(d=>d.color).pointAltitude(d=>d.altitude)
@@ -776,6 +791,37 @@ async function initGlobe(){
   window.addEventListener('resize', ()=>{ resizeTree(); resizeGlobe(); });
   resizeGlobe();
 
+  // ── Custom city labels (RAF loop for always-correct color) ──────────
+  const labelContainer = document.getElementById('city-labels');
+  const labelEls = CITIES.map(city => {
+    const el = document.createElement('div');
+    el.className = 'city-label';
+    el.textContent = city.name;
+    labelContainer.appendChild(el);
+    return { el, city };
+  });
+
+  function updateLabels() {
+    requestAnimationFrame(updateLabels);
+    const containerRect = document.getElementById('globe-container').getBoundingClientRect();
+    labelEls.forEach(({ el, city }) => {
+      // Always sync color directly from CITIES array
+      el.style.color = city.color;
+      el.style.textShadow = `0 0 7px ${city.color}99, 0 1px 4px #000c`;
+
+      const coords = globe.getScreenCoords(city.lat, city.lng, 0.02);
+      if (!coords) { el.style.display = 'none'; return; }
+
+      // Hide labels on the back of the globe (coords returns undefined or offscreen)
+      const x = coords.x, y = coords.y;
+      const offscreen = x < -50 || x > containerRect.width + 50 || y < -50 || y > containerRect.height + 50;
+      el.style.display = offscreen ? 'none' : 'block';
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+    });
+  }
+  updateLabels();
+
   updateGlobe();
 }
 
@@ -815,7 +861,6 @@ window.shuffleColors = function() {
 
   // Update globe HTML labels and points
   if (globe) {
-    globe.htmlElementsData([]).htmlElementsData(CITIES);
     updateGlobe();
   }
 };
