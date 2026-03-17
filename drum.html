@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Can You Hear the Shape of a Drum?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05060c;--surface:#0c0e1a;--surface2:#11142200;--border:#1a1d30;
+  --text:#ddd7cc;--muted:#585d7a;--gold:#c9a748;--teal:#22b5aa;
+  --blue:#4a72d8;--rose:#c04560;--cream:#f0e8d8;
+  --glow-gold:rgba(201,167,72,.18);--glow-teal:rgba(34,181,170,.18);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:18px;line-height:1.72;overflow-x:hidden}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(–bg)}
+::-webkit-scrollbar-thumb{background:var(–border);border-radius:2px}
+
+/* ===== HERO ===== */
+#hero{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:crosshair}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-overlay{position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 50% 50%,transparent 20%,rgba(5,6,12,.75) 65%,rgba(5,6,12,.97) 100%);pointer-events:none}
+.hero-content{position:relative;z-index:10;text-align:center;padding:2rem;pointer-events:none}
+.hero-kicker{font-family:‘Space Mono’,monospace;font-size:.6rem;letter-spacing:.38em;text-transform:uppercase;color:var(–gold);margin-bottom:2.2rem;opacity:0;animation:fadeUp .9s .2s forwards}
+.hero-title{font-family:‘Cormorant Garamond’,serif;font-weight:300;font-size:clamp(3rem,8vw,6.5rem);line-height:1.02;letter-spacing:-.01em;color:var(–cream)}
+.title-line{display:block;overflow:hidden}
+.title-word{display:inline-block;opacity:0;transform:translateY(100%);animation:wordIn .85s cubic-bezier(.22,1,.36,1) forwards}
+.tl1{animation-delay:.4s}.tl2{animation-delay:.55s}.tl3{animation-delay:.7s}.tl4{animation-delay:.85s}
+@keyframes wordIn{to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{to{opacity:.85}}
+.hero-italic{font-style:italic;color:var(–gold)}
+.hero-sub{font-family:‘EB Garamond’,serif;font-style:italic;font-size:1.05rem;color:var(–muted);margin-top:2rem;opacity:0;animation:fadeUp .9s 1.1s forwards}
+.hero-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);font-family:‘Space Mono’,monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(–muted);opacity:0;animation:fadeUp 1s 1.6s forwards}
+.hero-hint::after{content:’’;display:block;margin:10px auto 0;width:1px;height:42px;background:linear-gradient(to bottom,var(–muted),transparent);animation:pulse 2s 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scaleY(1);opacity:.4}50%{transform:scaleY(1.3);opacity:.8}}
+.hero-click-hint{position:absolute;bottom:6.5rem;left:50%;transform:translateX(-50%);font-family:‘Space Mono’,monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(–gold);opacity:0;animation:fadeUp 1s 2.2s forwards}
+
+/* ===== LAYOUT ===== */
+.wrap{max-width:1160px;margin:0 auto;padding:7rem 2.5rem}
+.divider{border:none;border-top:1px solid var(–border)}
+.s-num{font-family:‘Space Mono’,monospace;font-size:.6rem;letter-spacing:.35em;text-transform:uppercase;color:var(–gold);margin-bottom:1.2rem}
+.s-title{font-family:‘Cormorant Garamond’,serif;font-weight:300;font-size:clamp(2rem,4.5vw,3.6rem);line-height:1.08;color:var(–cream);margin-bottom:2.2rem}
+.prose{font-size:1.05rem;color:var(–text);max-width:680px}
+.prose p+p{margin-top:1rem}
+.math{font-family:‘Space Mono’,monospace;font-size:.8em;background:#111420;border:1px solid var(–border);border-radius:2px;padding:.1em .4em;color:var(–teal)}
+.eq{font-family:‘Space Mono’,monospace;font-size:.84rem;background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–gold);border-radius:0 6px 6px 0;padding:1rem 1.4rem;color:var(–teal);margin:1.6rem 0;overflow-x:auto;white-space:pre;line-height:2.1}
+.callout{background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–teal);border-radius:0 8px 8px 0;padding:1.3rem 1.8rem;margin:2rem 0;font-style:italic;color:var(–text);font-size:1.03rem}
+.callout cite{display:block;margin-top:.6rem;font-style:normal;font-family:‘Space Mono’,monospace;font-size:.6rem;color:var(–muted);letter-spacing:.05em}
+
+/* Panels */
+.panel{background:var(–surface);border:1px solid var(–border);border-radius:10px;padding:1.5rem;transition:border-color .3s,box-shadow .3s}
+.panel:hover{border-color:var(–border);box-shadow:0 0 40px var(–glow-gold)}
+.panel h3{font-family:‘Cormorant Garamond’,serif;font-weight:400;font-size:1.25rem;color:var(–gold);margin-bottom:1rem}
+
+/* ===== STRIKE SECTION ===== */
+.strike-layout{display:grid;grid-template-columns:1fr 1.1fr;gap:2.5rem;align-items:start;margin-top:2.5rem}
+@media(max-width:720px){.strike-layout{grid-template-columns:1fr}}
+#strike-canvas{width:100%;aspect-ratio:1;display:block;border-radius:8px;cursor:crosshair}
+.bar-list{margin-top:.5rem}
+.mode-bar{display:flex;align-items:center;gap:.8rem;margin-bottom:.65rem;font-family:‘Space Mono’,monospace;font-size:.62rem;color:var(–muted)}
+.mode-bar-label{width:60px;text-align:right;color:var(–teal)}
+.bar-track{flex:1;height:8px;background:var(–border);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .05s linear;position:absolute;left:0}
+
+/* ===== PHASOR SECTION ===== */
+.phasor-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:2.5rem;align-items:start;margin-top:2.5rem}
+@media(max-width:720px){.phasor-layout{grid-template-columns:1fr}}
+#phasor-canvas{width:100%;display:block;border-radius:8px}
+.phasor-controls{display:flex;flex-direction:column;gap:1rem;margin-top:1.2rem}
+.phasor-toggle{display:flex;align-items:center;gap:.8rem;cursor:pointer;font-family:‘Space Mono’,monospace;font-size:.64rem;padding:.6rem .9rem;border:1px solid var(–border);border-radius:100px;transition:border-color .2s,background .2s;background:transparent;color:var(–muted);letter-spacing:.04em}
+.phasor-toggle.on{background:var(–surface);color:var(–cream)}
+.pt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+#waveform-canvas{width:100%;display:block;border-radius:8px;margin-top:1rem}
+
+/* ===== MODE GALLERY ===== */
+.modes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-top:2.5rem}
+@media(max-width:560px){.modes-grid{grid-template-columns:repeat(2,1fr)}}
+.mode-card{background:var(–surface);border:1px solid var(–border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .3s,transform .25s,box-shadow .3s;position:relative}
+.mode-card::after{content:’’;position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(5,6,12,.4) 100%);pointer-events:none}
+.mode-card:hover{border-color:var(–gold);transform:translateY(-4px);box-shadow:0 16px 48px var(–glow-gold)}
+.mode-card.active-card{border-color:var(–teal);box-shadow:0 0 0 1px var(–teal),0 16px 48px var(–glow-teal)}
+.mode-card canvas{width:100%;aspect-ratio:1;display:block}
+.mode-meta{padding:.65rem 1rem .8rem}
+.mode-name{font-family:‘Space Mono’,monospace;font-size:.64rem;color:var(–gold);margin-bottom:.25rem}
+.mode-ev{font-family:‘Space Mono’,monospace;font-size:.57rem;color:var(–muted);line-height:1.7}
+
+/* ===== BEATING MODES ===== */
+.beat-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.5rem}
+@media(max-width:660px){.beat-layout{grid-template-columns:1fr}}
+#beat-canvas{width:100%;aspect-ratio:1;display:block;border-radius:8px}
+#beat-canvas2{width:100%;aspect-ratio:1;display:block;border-radius:8px}
+.beat-info{padding:1rem 0;font-family:‘Space Mono’,monospace;font-size:.65rem;color:var(–muted);line-height:2}
+.beat-info b{color:var(–teal)}
+.beat-picker{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
+.bp{font-family:‘Space Mono’,monospace;font-size:.6rem;padding:.3rem .65rem;border:1px solid var(–border);border-radius:100px;background:transparent;color:var(–muted);cursor:pointer;transition:all .2s}
+.bp.sel{border-color:var(–gold);color:var(–gold);background:var(–surface)}
+
+/* ===== WEYL ===== */
+.weyl-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:3.5rem;align-items:start;margin-top:2.5rem}
+@media(max-width:720px){.weyl-layout{grid-template-columns:1fr}}
+#weyl-canvas{width:100%;display:block;border-radius:8px}
+
+/* ===== ISOSPECTRAL ===== */
+.iso-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.5rem}
+@media(max-width:580px){.iso-grid{grid-template-columns:1fr}}
+.drum-panel{background:var(–surface);border:1px solid var(–border);border-radius:10px;padding:1.5rem;text-align:center}
+.drum-panel h3{font-family:‘Cormorant Garamond’,serif;font-weight:400;font-size:1.35rem;color:var(–cream);margin-bottom:1rem}
+.drum-panel canvas{width:100%;max-width:240px;margin:0 auto;display:block;border-radius:4px}
+.ev-tbl{margin-top:1rem;font-family:‘Space Mono’,monospace;font-size:.62rem}
+.ev-head{display:flex;justify-content:space-between;color:var(–muted);border-bottom:1px solid var(–border);padding:.35rem 0;letter-spacing:.05em}
+.ev-row{display:flex;justify-content:space-between;padding:.22rem 0;border-bottom:1px solid #1a1d3022;color:var(–teal)}
+.ev-row span:first-child{color:var(–muted)}
+
+/* ===== FOOTER ===== */
+footer{border-top:1px solid var(–border);max-width:1160px;margin:0 auto;padding:5rem 2.5rem 4rem}
+.refs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+@media(max-width:600px){.refs-grid{grid-template-columns:1fr}}
+.ref-item{font-size:.88rem;color:var(–muted);font-style:italic;padding:.75rem 1rem;border-left:2px solid var(–border);line-height:1.6}
+.ref-item strong{font-style:normal;color:var(–text)}
+.epilogue{margin-top:3rem;text-align:center;font-style:italic;color:var(–muted);font-size:.9rem}
+
+/* fade-in on scroll */
+.fi{opacity:0;transform:translateY(30px);transition:opacity .85s ease,transform .85s ease}
+.fi.vis{opacity:1;transform:none}
+</style>
+
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-kicker">Spectral Geometry · Fourier Analysis · Mathematical Physics</div>
+    <h1 class="hero-title">
+      <span class="title-line"><span class="title-word tl1">Why Can You</span></span>
+      <span class="title-line"><span class="title-word tl2 hero-italic">Hear</span>&ensp;<span class="title-word tl3">the Shape</span></span>
+      <span class="title-line"><span class="title-word tl4">of a Drum?</span></span>
+    </h1>
+    <div class="hero-sub">posed by <em>Mark Kac</em>, 1966 &mdash; answered by <em>Gordon, Webb &amp; Wolpert</em>, 1992</div>
+  </div>
+  <div class="hero-click-hint">↑ click anywhere to strike the drum</div>
+  <div class="hero-hint">scroll</div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== §01 STRIKE ===== -->
+
+<div class="wrap fi" id="sec-strike">
+  <div class="s-num">§ 01 — The Voice of a Drum</div>
+  <h2 class="s-title">Strike, Listen,<br>Decompose</h2>
+  <div class="strike-layout">
+    <div>
+      <div class="prose">
+        <p>Strike the drum below — anywhere. The membrane's displacement immediately resolves into a superposition of <em>normal modes</em>:</p>
+      </div>
+      <div class="eq">u(x,y,t)  =  Σₙ  aₙ · φₙ(x,y) · cos(√λₙ · ct)</div>
+      <div class="prose">
+        <p>The coefficients <span class="math">aₙ = ⟨u₀, φₙ⟩</span> are the inner products of your initial displacement with each eigenfunction — a spatial Fourier transform. The bar chart shows these amplitudes decaying as the drum rings down.</p>
+        <p>Strike near the center to excite only radially symmetric modes (<span class="math">m=0</span>). Strike off-center to wake asymmetric modes (<span class="math">m≥1</span>).</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>Click to strike</h3>
+        <canvas id="strike-canvas" width="380" height="380"></canvas>
+        <div class="bar-list" id="bar-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== §02 PHASORS ===== -->
+
+<div class="wrap fi" id="sec-phasor">
+  <div class="s-num">§ 02 — Fourier as Rotating Vectors</div>
+  <h2 class="s-title">The Phasor<br>Constellation</h2>
+  <div class="phasor-layout">
+    <div>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <canvas id="phasor-canvas" width="460" height="460"></canvas>
+      </div>
+      <div class="panel" style="margin-top:1rem;padding:1rem">
+        <canvas id="waveform-canvas" width="460" height="100"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="prose">
+        <p>Each eigenfrequency <span class="math">ωₙ = √λₙ · c/R</span> of the drum corresponds to a <em>phasor</em> — a rotating vector. The tip of each phasor traces a circle; adding them produces the waveform heard at the drum's center.</p>
+        <p>This is the <em>Fourier representation in the frequency domain</em>. Toggle modes to add or remove their circular rotation. The trace below shows the resulting superposition over time.</p>
+      </div>
+      <div class="phasor-controls" id="phasor-controls"></div>
+      <div class="callout" style="margin-top:2rem">
+        The spectrum of a drum is exactly the set of frequencies whose phasors appear in this diagram. Two drums with the same spectrum produce the same superposition — they sound identical.
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== §03 MODE GALLERY ===== -->
+
+<div class="wrap fi" id="sec-modes">
+  <div class="s-num">§ 03 — Eigenmodes of the Circular Drum</div>
+  <h2 class="s-title">The Shapes of<br>Pure Sound</h2>
+  <div class="prose">
+    <p>For a circular drum of radius <span class="math">R</span> clamped at the boundary, the eigenfunctions are exact Bessel modes:</p>
+  </div>
+  <div class="eq">φₘₙ(r,θ) = Jₘ(jₘₙ · r/R) · cos(mθ)
+λₘₙ = (jₘₙ/R)²     [eigenvalue = squared frequency]</div>
+  <div class="prose"><p>All 6 modes animate continuously below. Click any to set it in the hero. Modes with <span class="math">m≥1</span> come in degenerate pairs (cos/sin); the drum can ring both at once.</p></div>
+  <div class="modes-grid" id="modes-grid"></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== §04 BEATING ===== -->
+
+<div class="wrap fi" id="sec-beat">
+  <div class="s-num">§ 04 — Interference &amp; Beating</div>
+  <h2 class="s-title">When Two Modes<br>Collide</h2>
+  <div class="prose" style="margin-bottom:2rem">
+    <p>When two modes have nearby eigenvalues — say <span class="math">λₘₙ ≈ λₘ'ₙ'</span> — they beat against each other. The superposition <span class="math">φ₁cos(ω₁t) + φ₂cos(ω₂t)</span> creates a slowly-pulsing, spatially-complex pattern. Select any two modes:</p>
+  </div>
+  <div class="beat-picker" id="beat-picker"></div>
+  <div class="beat-layout" style="margin-top:2rem">
+    <div class="panel">
+      <h3>Mode A</h3>
+      <canvas id="beat-canvas" width="320" height="320"></canvas>
+      <div class="beat-info" id="beat-info-a"></div>
+    </div>
+    <div class="panel">
+      <h3>A + B (superposition)</h3>
+      <canvas id="beat-canvas2" width="320" height="320"></canvas>
+      <div class="beat-info" id="beat-info-b"></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== §05 WEYL ===== -->
+
+<div class="wrap fi" id="sec-weyl">
+  <div class="s-num">§ 05 — The Spectrum Encodes Area</div>
+  <h2 class="s-title">Weyl's Law:<br>You Can Hear the Area</h2>
+  <div class="weyl-layout">
+    <div>
+      <div class="prose">
+        <p>Hermann Weyl proved in 1911 that the <em>density</em> of eigenvalues encodes the area. Let <span class="math">N(λ)</span> count eigenvalues below <span class="math">λ</span>. Then:</p>
+      </div>
+      <div class="eq">N(λ)  ∼  Area(Ω) · λ / (4π)    as λ → ∞</div>
+      <div class="prose">
+        <p>For the unit disk (<span class="math">R=1</span>, Area = π), this gives <span class="math">N(λ) ∼ λ/4</span>. The staircase is drawn live — watch each eigenvalue click into place. Higher-order Weyl terms recover perimeter, corners, and topology.</p>
+      </div>
+      <div class="callout">
+        "From the asymptotic growth of a sequence of numbers, Weyl extracted a continuous geometric quantity. The finite encodes the infinite."
+        <cite>— Spectral geometry tradition</cite>
+      </div>
+      <button id="weyl-replay" style="margin-top:1.5rem;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.55rem 1.2rem;border:1px solid var(--border);border-radius:100px;background:transparent;color:var(--gold);cursor:pointer;transition:border-color .2s,background .2s">↺ Replay animation</button>
+    </div>
+    <div class="panel">
+      <h3>Spectral counting function N(λ)</h3>
+      <canvas id="weyl-canvas" width="500" height="420"></canvas>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== §06 ISOSPECTRAL ===== -->
+
+<div class="wrap fi" id="sec-iso">
+  <div class="s-num">§ 06 — Two Drums, One Voice</div>
+  <h2 class="s-title">You Cannot Always<br>Hear the Shape</h2>
+  <div class="prose">
+    <p>In 1992, Gordon, Webb and Wolpert exhibited two planar polygons — each assembled from seven right triangles — that share <em>every</em> eigenvalue of <span class="math">−Δ</span> with Dirichlet boundary conditions, yet are not congruent. They vibrate below in sync, sharing each eigenmode's frequency.</p>
+  </div>
+  <div class="iso-grid">
+    <div class="drum-panel">
+      <h3>Drum Ω₁</h3>
+      <canvas id="drum1" width="240" height="240"></canvas>
+      <div class="ev-tbl"><div class="ev-head"><span>n</span><span>λₙ</span></div><div id="ev1"></div></div>
+    </div>
+    <div class="drum-panel">
+      <h3>Drum Ω₂</h3>
+      <canvas id="drum2" width="240" height="240"></canvas>
+      <div class="ev-tbl"><div class="ev-head"><span>n</span><span>λₙ</span></div><div id="ev2"></div></div>
+    </div>
+  </div>
+  <div class="prose" style="margin-top:2.5rem">
+    <p>The construction uses <em>Sunada's transplantation method</em>: an explicit linear isomorphism between eigenspaces on both domains, built from a group-covering argument. Zelditch later showed (2000) that among analytic domains with bilateral symmetry, the spectrum <em>does</em> determine the shape — making the generic case an active open problem.</p>
+  </div>
+</div>
+
+<hr class="divider">
+<footer>
+  <div class="s-num">References</div>
+  <h2 class="s-title" style="font-size:1.9rem;margin-bottom:1.5rem">Further Reading</h2>
+  <div class="refs-grid">
+    <div class="ref-item"><strong>M. Kac</strong> — "Can One Hear the Shape of a Drum?" <em>Amer. Math. Monthly</em> 73 (1966), 1–23.</div>
+    <div class="ref-item"><strong>H. Weyl</strong> — "Über die Abhängigkeit der Eigenschwingungen einer Membran." <em>J. reine angew. Math.</em> 141 (1912).</div>
+    <div class="ref-item"><strong>C. Gordon, D. Webb, S. Wolpert</strong> — "One Cannot Hear the Shape of a Drum." <em>Bull. AMS</em> 27 (1992), 134–138.</div>
+    <div class="ref-item"><strong>S. Zelditch</strong> — "Spectral Determination of Analytic Bi-axisymmetric Plane Domains." <em>GAFA</em> 10 (2000), 628–677.</div>
+  </div>
+  <p class="epilogue">Bessel functions computed to 10⁻¹⁵ via power series. All eigenvalues are exact zeros j²ₘₙ/R². Page by Sam.</p>
+</footer>
+
+<script>
+"use strict";
+// =============================================================
+// MATH CORE
+// =============================================================
+
+function besselJ(m, x) {
+  if (x <= 0) return m === 0 ? 1 : 0;
+  const h = x * .5;
+  let term = 1;
+  for (let i = 1; i <= m; i++) term *= h / i;
+  let sum = term;
+  for (let k = 1; k <= 80; k++) {
+    term *= -(h * h) / (k * (m + k));
+    sum += term;
+    if (k > 4 && Math.abs(term) < 1e-15 * (Math.abs(sum) + 1e-30)) break;
+  }
+  return sum;
+}
+
+const ZEROS = {
+  0:[2.404826,5.520078,8.653728,11.791534,14.930918],
+  1:[3.831706,7.015587,10.173468,13.323692,16.470630],
+  2:[5.135622,8.417244,11.619841,14.795952],
+  3:[6.380162,9.761023,13.015201],
+  4:[7.588342,11.064709],
+  5:[8.771484,12.338604],
+};
+
+// All [m,n] modes sorted by eigenvalue
+const ALL_MODES = [];
+for (const [ms, zs] of Object.entries(ZEROS)) {
+  const m = parseInt(ms);
+  zs.forEach((z, n) => ALL_MODES.push({ m, n, z, lam: z*z, mult: m===0?1:2 }));
+}
+ALL_MODES.sort((a,b)=>a.lam-b.lam);
+
+const GALLERY = [[0,0],[1,0],[2,0],[0,1],[3,0],[1,1]];
+
+// Color palette per mode index
+const COLORS = ['#c9a748','#22b5aa','#c04560','#6080e0','#90d858','#e06080','#b060c0'];
+
+// =============================================================
+// BUFFER RENDERING
+// =============================================================
+
+function buildBuf(W, H, m, n, phase=0) {
+  const cx=W*.5, cy=H*.5, R=Math.min(W,H)*.46;
+  const z0 = ZEROS[m][n];
+  const buf = new Float32Array(W*H);
+  let mx = 0;
+  for (let py=0; py<H; py++) for (let px=0; px<W; px++) {
+    const dx=px-cx, dy=py-cy, r=Math.sqrt(dx*dx+dy*dy);
+    if (r>R+1){ buf[py*W+px]=1e10; continue; }
+    const v = besselJ(m, z0*Math.min(r/R,1)) * (m===0?1:Math.cos(m*(Math.atan2(dy,dx)+phase)));
+    buf[py*W+px]=v;
+    if(Math.abs(v)>mx) mx=Math.abs(v);
+  }
+  if(mx>0) for(let i=0;i<W*H;i++) if(buf[i]<1e9) buf[i]/=mx;
+  return buf;
+}
+
+function paintBuf(ctx, W, H, buf, tf, bg=[5,6,12]) {
+  const img=ctx.createImageData(W,H), d=img.data;
+  for(let i=0;i<W*H;i++){
+    const v=buf[i], k=i*4;
+    if(v>1e9){d[k]=bg[0];d[k+1]=bg[1];d[k+2]=bg[2];d[k+3]=255;continue;}
+    const a=v*tf;
+    let r,g,b;
+    if(a>=0){
+      const t=a;
+      r=bg[0]+t*(220-bg[0]);g=bg[1]+t*(155-bg[1]);b=bg[2]+t*(8-bg[2]);
+    } else {
+      const t=-a;
+      r=bg[0]+t*(5-bg[0]);g=bg[1]+t*(165-bg[1]);b=bg[2]+t*(235-bg[2]);
+    }
+    d[k]=r|0;d[k+1]=g|0;d[k+2]=b|0;d[k+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+function paintSuperBuf(ctx, W, H, bufs, tfs, bg=[5,6,12]) {
+  const img=ctx.createImageData(W,H), d=img.data;
+  const n=bufs.length;
+  for(let i=0;i<W*H;i++){
+    const k=i*4;
+    let outside=true, v=0;
+    for(let j=0;j<n;j++){
+      if(bufs[j][i]<1e9){outside=false; v+=bufs[j][i]*tfs[j];}
+    }
+    if(outside){d[k]=bg[0];d[k+1]=bg[1];d[k+2]=bg[2];d[k+3]=255;continue;}
+    const mx=1.4, a=Math.max(-mx,Math.min(mx,v))/mx;
+    let r,g,b;
+    if(a>=0){
+      const t=a;
+      r=bg[0]+t*(220-bg[0]);g=bg[1]+t*(155-bg[1]);b=bg[2]+t*(8-bg[2]);
+    } else {
+      const t=-a;
+      r=bg[0]+t*(5-bg[0]);g=bg[1]+t*(165-bg[1]);b=bg[2]+t*(235-bg[2]);
+    }
+    d[k]=r|0;d[k+1]=g|0;d[k+2]=b|0;d[k+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+// =============================================================
+// HERO — multi-mode morphing membrane + ripple
+// =============================================================
+{
+  const cv=document.getElementById('hero-canvas');
+  let W,H;
+  function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight;}
+  resize(); window.addEventListener('resize',()=>{resize();dirty=true;});
+
+  // Precompute low-res buffers for several modes
+  const RES=512;
+  const HMODES=[[0,0],[1,0],[2,0],[0,1],[1,1]];
+  const hbufs=HMODES.map(([m,n])=>buildBuf(RES,RES,m,n));
+
+  // Slow random walk over mode amplitudes
+  const amps=HMODES.map((_,i)=>i===0?1.2:0.0);
+  const vels=HMODES.map(()=>0);
+  const targets=HMODES.map((_,i)=>i===0?1.2:0.0);
+  let retargetTimer=0;
+
+  // Ripples from clicks
+  const ripples=[];
+
+  cv.addEventListener('click', e=>{
+    const rect=cv.getBoundingClientRect();
+    const fx=(e.clientX-rect.left)/rect.width;
+    const fy=(e.clientY-rect.top)/rect.height;
+    ripples.push({x:fx,y:fy,t:0,r:0,life:120});
+    // Excite modes proportional to position
+    HMODES.forEach(([m,n],i)=>{
+      const dist=Math.sqrt((fx-.5)**2+(fy-.5)**2)*2;
+      targets[i]=Math.max(0,(1-dist)*1.5*(m===0?1.4:0.9))*(0.6+Math.random()*.8);
+    });
+  });
+
+  let dirty=true, T=0;
+  const tmpCtx=document.createElement('canvas');
+  tmpCtx.width=RES; tmpCtx.height=RES;
+  const tctx=tmpCtx.getContext('2d');
+  const tmpBuf=new Float32Array(RES*RES);
+
+  function heroFrame(){
+    requestAnimationFrame(heroFrame);
+    T+=.012;
+    retargetTimer--;
+    if(retargetTimer<0){
+      retargetTimer=90+Math.random()*120;
+      const pick=Math.floor(Math.random()*HMODES.length);
+      HMODES.forEach((_,i)=>{
+        targets[i]=i===pick?1.0+Math.random()*.5:Math.random()*.35;
+      });
+    }
+    // Spring dynamics on amps
+    let changed=false;
+    amps.forEach((a,i)=>{
+      vels[i]+=(targets[i]-a)*.04;
+      vels[i]*=.88;
+      const na=a+vels[i];
+      if(Math.abs(na-a)>.0005) changed=true;
+      amps[i]=na;
+    });
+
+    // Composite into tmpBuf
+    for(let i=0;i<RES*RES;i++) tmpBuf[i]=0;
+    let anyOut=false;
+    HMODES.forEach(([m,n],mi)=>{
+      const tf=amps[mi]*Math.cos(ZEROS[m][n]*T*.6);
+      const buf=hbufs[mi];
+      for(let i=0;i<RES*RES;i++){
+        if(buf[i]>1e9){if(!anyOut){anyOut=true;}continue;}
+        tmpBuf[i]+=buf[i]*tf;
+      }
+    });
+    // Mark outside pixels
+    const buf0=hbufs[0];
+    for(let i=0;i<RES*RES;i++) if(buf0[i]>1e9) tmpBuf[i]=1e10;
+
+    // Render to temp canvas
+    paintBuf(tctx,RES,RES,tmpBuf,1);
+
+    // Draw to hero canvas scaled
+    const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,W,H);
+    ctx.drawImage(tmpCtx, (W-Math.min(W,H))*.5, (H-Math.min(W,H))*.5, Math.min(W,H), Math.min(W,H));
+
+    // Ripples
+    for(let i=ripples.length-1;i>=0;i--){
+      const rp=ripples[i];
+      rp.t+=1; rp.r+=3.5; rp.life--;
+      if(rp.life<=0){ripples.splice(i,1);continue;}
+      const alpha=rp.life/120;
+      const cx2=rp.x*W, cy2=rp.y*H;
+      ctx.beginPath();
+      ctx.arc(cx2,cy2,rp.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(201,167,72,${alpha*.55})`;
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+      if(rp.r>18){
+        ctx.beginPath();
+        ctx.arc(cx2,cy2,rp.r*.65,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(34,181,170,${alpha*.3})`;
+        ctx.lineWidth=1;
+        ctx.stroke();
+      }
+    }
+
+    // Glow ring
+    const cr=Math.min(W,H)*.46;
+    const ox=W*.5, oy=H*.5;
+    const grd=ctx.createRadialGradient(ox,oy,cr*.9,ox,oy,cr*1.06);
+    grd.addColorStop(0,'rgba(201,167,72,.0)');
+    grd.addColorStop(.5,`rgba(201,167,72,${.12+.06*Math.sin(T*1.1)})`);
+    grd.addColorStop(1,'rgba(201,167,72,.0)');
+    ctx.beginPath(); ctx.arc(ox,oy,cr,0,Math.PI*2);
+    ctx.strokeStyle=grd; ctx.lineWidth=3; ctx.stroke();
+  }
+  heroFrame();
+}
+
+// =============================================================
+// §01 — STRIKE CANVAS
+// =============================================================
+{
+  const cv=document.getElementById('strike-canvas');
+  const W=cv.width, H=cv.height;
+  const ctx=cv.getContext('2d');
+
+  // Use m=0 modes for simplicity (radially symmetric)
+  const SMODES=[[0,0],[0,1],[0,2],[1,0],[1,1],[2,0]];
+  const sbufs=SMODES.map(([m,n])=>buildBuf(W,H,m,n));
+
+  // Amplitudes with decay
+  const samps=SMODES.map(()=>0);
+  const sdec=SMODES.map(([m,n])=>Math.exp(-0.003*(1+ZEROS[m][n]*.04)));
+  let sT=0;
+
+  // Build bar UI
+  const barList=document.getElementById('bar-list');
+  const barFills=[];
+  SMODES.forEach(([m,n],i)=>{
+    const div=document.createElement('div');
+    div.className='mode-bar';
+    const color=COLORS[i];
+    div.innerHTML=`<span class="mode-bar-label" style="color:${color}">J${m},${n+1}</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${color};width:0%"></div></div>`;
+    barList.appendChild(div);
+    barFills.push(div.querySelector('.bar-fill'));
+  });
+
+  function strike(fx, fy) {
+    const cx=W*.5, cy=H*.5, R=Math.min(W,H)*.46;
+    const rx=(fx-cx)/R, ry=(fy-cy)/R;
+    const r=Math.sqrt(rx*rx+ry*ry);
+    const th=Math.atan2(ry,rx);
+    // Amplitude ~ J_m(j_{m,n} * r) * cos(m*theta)
+    SMODES.forEach(([m,n],i)=>{
+      const z0=ZEROS[m][n];
+      const amp=besselJ(m,z0*Math.min(r,.99))*(m===0?1:Math.cos(m*th));
+      samps[i]=Math.abs(amp)*1.5+.1;
+    });
+  }
+  cv.addEventListener('click',e=>{
+    const r=cv.getBoundingClientRect();
+    strike((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H);
+  });
+  strike(W*.5,H*.5); // default center strike
+
+  function sFrame(){
+    requestAnimationFrame(sFrame);
+    sT+=.018;
+    const tfs=SMODES.map(([m,n],i)=>samps[i]*Math.cos(ZEROS[m][n]*sT*.55));
+    // Composite
+    paintSuperBuf(ctx,W,H,sbufs,tfs,[12,14,26]);
+    // Decay
+    SMODES.forEach((_,i)=>{samps[i]*=sdec[i];});
+    // Update bars
+    barFills.forEach((bf,i)=>{
+      bf.style.width=Math.min(100,samps[i]*90)+'%';
+    });
+  }
+  sFrame();
+}
+
+// =============================================================
+// §02 — PHASORS
+// =============================================================
+{
+  const pc=document.getElementById('phasor-canvas');
+  const wc=document.getElementById('waveform-canvas');
+  const PW=pc.width, PH=pc.height;
+  const WW=wc.width, WH=wc.height;
+  const pctx=pc.getContext('2d');
+  const wctx=wc.getContext('2d');
+
+  const PMODES=[[0,0],[0,1],[0,2],[0,3]];
+  const pActive=PMODES.map((_,i)=>i<3);
+  const pAmps=[1.0,.45,.22,.13];
+  const pColors=['#c9a748','#22b5aa','#c04560','#6080e0'];
+  let pT=0;
+
+  const ctrl=document.getElementById('phasor-controls');
+  PMODES.forEach(([m,n],i)=>{
+    const z=ZEROS[m][n];
+    const btn=document.createElement('button');
+    btn.className='phasor-toggle'+(pActive[i]?' on':'');
+    btn.innerHTML=`<span class="pt-dot" style="background:${pColors[i]}"></span>ω${i+1} = j₀,${n+1}/R = ${z.toFixed(3)} c/R`;
+    btn.addEventListener('click',()=>{
+      pActive[i]=!pActive[i];
+      btn.classList.toggle('on',pActive[i]);
+    });
+    ctrl.appendChild(btn);
+  });
+
+  // Waveform trail
+  const TRAIL=WW;
+  const trailY=new Float32Array(TRAIL);
+  let trailHead=0;
+
+  function pFrame(){
+    requestAnimationFrame(pFrame);
+    pT+=.015;
+
+    pctx.fillStyle='#0c0e1a';
+    pctx.fillRect(0,0,PW,PH);
+
+    // Draw phasors chained
+    const cx=PW*.5, cy=PH*.5;
+    const baseR=Math.min(PW,PH)*.14;
+    let ex=cx, ey=cy;
+
+    // draw from outermost to center for nice layering
+    PMODES.forEach(([m,n],i)=>{
+      const z=ZEROS[m][n];
+      const R=baseR*pAmps[i];
+      if(!pActive[i]) return;
+      const angle=z*pT*.7;
+
+      // Circle
+      pctx.beginPath(); pctx.arc(ex,ey,R,0,Math.PI*2);
+      pctx.strokeStyle=pColors[i]+'30';
+      pctx.lineWidth=1; pctx.stroke();
+
+      // Spoke
+      const nx=ex+R*Math.cos(angle);
+      const ny=ey+R*Math.sin(angle);
+      pctx.beginPath(); pctx.moveTo(ex,ey); pctx.lineTo(nx,ny);
+      pctx.strokeStyle=pColors[i]+'cc';
+      pctx.lineWidth=2; pctx.stroke();
+
+      // Dot
+      pctx.beginPath(); pctx.arc(nx,ny,4,0,Math.PI*2);
+      pctx.fillStyle=pColors[i]; pctx.fill();
+
+      ex=nx; ey=ny;
+    });
+
+    // Dashed line to waveform edge
+    pctx.beginPath();
+    pctx.setLineDash([3,4]);
+    pctx.moveTo(ex,ey); pctx.lineTo(PW,ey);
+    pctx.strokeStyle='#ffffff22'; pctx.lineWidth=1; pctx.stroke();
+    pctx.setLineDash([]);
+
+    // Endpoint dot on right edge
+    pctx.beginPath(); pctx.arc(PW-2,ey,3,0,Math.PI*2);
+    pctx.fillStyle='#ffffff55'; pctx.fill();
+
+    // Axis labels
+    pctx.fillStyle='#585d7a'; pctx.font='9px Space Mono,monospace';
+    pctx.textAlign='center';
+    pctx.fillText('Re',cx,PH-10);
+    pctx.save(); pctx.translate(14,cy); pctx.rotate(-Math.PI/2);
+    pctx.fillText('Im',0,0); pctx.restore();
+
+    // --- Waveform ---
+    const val=(ey-cy)/(Math.min(PW,PH)*.14*2);
+    trailY[trailHead%TRAIL]=val;
+    trailHead++;
+
+    wctx.fillStyle='#0c0e1a';
+    wctx.fillRect(0,0,WW,WH);
+    wctx.strokeStyle='#1a1d30'; wctx.lineWidth=1;
+    wctx.beginPath(); wctx.moveTo(0,WH*.5); wctx.lineTo(WW,WH*.5); wctx.stroke();
+
+    wctx.beginPath();
+    wctx.strokeStyle='#f0e8d8cc';
+    wctx.lineWidth=1.5;
+    for(let px=0;px<WW;px++){
+      const idx=(trailHead-WW+px+TRAIL*2)%TRAIL;
+      const y=WH*.5+trailY[idx]*WH*.42;
+      px===0?wctx.moveTo(px,y):wctx.lineTo(px,y);
+    }
+    wctx.stroke();
+
+    // Current marker
+    wctx.beginPath();
+    wctx.arc(WW-1,WH*.5+val*WH*.42,4,0,Math.PI*2);
+    wctx.fillStyle='#f0e8d8'; wctx.fill();
+  }
+  pFrame();
+}
+
+// =============================================================
+// §03 — MODE GALLERY (all always animated)
+// =============================================================
+{
+  const grid=document.getElementById('modes-grid');
+  const RES=180;
+
+  GALLERY.forEach(([m,n],idx)=>{
+    const z=ZEROS[m][n], lam=(z*z).toFixed(3), mult=m===0?1:2;
+    const card=document.createElement('div');
+    card.className='mode-card'+(idx===0?' active-card':'');
+    card.innerHTML=`<canvas width="${RES}" height="${RES}"></canvas>
+      <div class="mode-meta">
+        <div class="mode-name">Mode (m=${m}, n=${n+1})${mult>1?' ×2':''}</div>
+        <div class="mode-ev">λ = j²<sub>${m},${n+1}</sub>/R² = ${lam}/R²</div>
+        <div class="mode-ev">ω = ${z.toFixed(4)} c/R</div>
+      </div>`;
+    const cv=card.querySelector('canvas');
+    const ctx=cv.getContext('2d');
+    const buf=buildBuf(RES,RES,m,n);
+
+    // Phase offset so cards don't all move together
+    let t=idx*(Math.PI*2/GALLERY.length);
+    const speed=0.4+idx*.08;
+
+    function loop(){
+      requestAnimationFrame(loop);
+      t+=speed*.015;
+      paintBuf(ctx,RES,RES,buf,Math.cos(z*t*.5),[13,15,26]);
+    }
+    loop();
+
+    card.addEventListener('click',()=>{
+      document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active-card'));
+      card.classList.add('active-card');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+    grid.appendChild(card);
+  });
+}
+
+// =============================================================
+// §04 — BEATING MODES
+// =============================================================
+{
+  const BMODES=[
+    {m:0,n:0,label:'(0,1) j=2.405'},{m:0,n:1,label:'(0,2) j=5.520'},
+    {m:1,n:0,label:'(1,1) j=3.832'},{m:2,n:0,label:'(2,1) j=5.136'},
+    {m:0,n:2,label:'(0,3) j=8.654'},{m:1,n:1,label:'(1,2) j=7.016'},
+  ];
+  let selA=0, selB=2;
+  const RES=320;
+  const bbufs=BMODES.map(({m,n})=>buildBuf(RES,RES,m,n));
+  const bc1=document.getElementById('beat-canvas');
+  const bc2=document.getElementById('beat-canvas2');
+  const b1ctx=bc1.getContext('2d'), b2ctx=bc2.getContext('2d');
+  let bT=0;
+
+  const picker=document.getElementById('beat-picker');
+  function buildPicker(){
+    picker.innerHTML='';
+    BMODES.forEach((bm,i)=>{
+      const btn=document.createElement('button');
+      btn.className='bp'+(i===selA||i===selB?' sel':'');
+      btn.textContent=bm.label;
+      if(i===selA) btn.style.borderColor='var(--gold)';
+      if(i===selB) btn.style.borderColor='var(--teal)';
+      btn.addEventListener('click',()=>{
+        if(i===selA||i===selB) return;
+        // Cycle: replace A with B, set new B
+        selA=selB; selB=i;
+        buildPicker();
+      });
+      picker.appendChild(btn);
+    });
+  }
+  buildPicker();
+
+  const infA=document.getElementById('beat-info-a');
+  const infB=document.getElementById('beat-info-b');
+
+  function bFrame(){
+    requestAnimationFrame(bFrame);
+    bT+=.014;
+    const mA=BMODES[selA], mB=BMODES[selB];
+    const zA=ZEROS[mA.m][mA.n], zB=ZEROS[mB.m][mB.n];
+    const tfA=Math.cos(zA*bT*.5);
+    const tfB=Math.cos(zB*bT*.5);
+    paintBuf(b1ctx,RES,RES,bbufs[selA],tfA,[12,14,26]);
+    paintSuperBuf(b2ctx,RES,RES,[bbufs[selA],bbufs[selB]],[tfA,tfB*0.9],[12,14,26]);
+
+    const beatFreq=Math.abs(zA-zB)*.5;
+    infA.innerHTML=`<b>ω = ${zA.toFixed(4)} c/R</b>\nλ = ${(zA*zA).toFixed(3)}/R²`;
+    infB.innerHTML=`<b>Beat freq:</b> |ω₁−ω₂|/2 = ${beatFreq.toFixed(4)} c/R\nModes ${mA.label.split(' ')[0]} + ${mB.label.split(' ')[0]}`;
+  }
+  bFrame();
+}
+
+// =============================================================
+// §05 — WEYL ANIMATED STAIRCASE
+// =============================================================
+{
+  const cv=document.getElementById('weyl-canvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  const ml=54,mr=18,mt=24,mb=44;
+  const pw=W-ml-mr, ph=H-mt-mb;
+
+  const evs=[];
+  for(const [ms,zeros] of Object.entries(ZEROS)){
+    const m=parseInt(ms);
+    zeros.forEach(z=>{ const mult=m===0?1:2; for(let k=0;k<mult;k++) evs.push(z*z); });
+  }
+  evs.sort((a,b)=>a-b);
+  const maxL=280;
+  const ev=evs.filter(v=>v<=maxL);
+
+  function lx(l){return ml+(l/maxL)*pw;}
+  function ny(n){return mt+ph-(n/(ev.length+2))*ph;}
+
+  let animN=0, animTimer=0;
+  function drawWeyl(n){
+    ctx.fillStyle='#0c0e1a'; ctx.fillRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle='#1a1d30'; ctx.lineWidth=1;
+    [50,100,150,200,250].forEach(l=>{
+      ctx.beginPath(); ctx.moveTo(lx(l),mt); ctx.lineTo(lx(l),mt+ph); ctx.stroke();
+      ctx.fillStyle='#585d7a'; ctx.font='9px Space Mono,monospace'; ctx.textAlign='center';
+      ctx.fillText(l,lx(l),mt+ph+16);
+    });
+    const ys=Math.ceil(ev.length/5);
+    for(let i=0;i<=ev.length;i+=ys){
+      ctx.beginPath(); ctx.moveTo(ml,ny(i)); ctx.lineTo(ml+pw,ny(i)); ctx.stroke();
+      ctx.fillStyle='#585d7a'; ctx.font='9px Space Mono,monospace'; ctx.textAlign='right';
+      ctx.fillText(i,ml-7,ny(i)+3);
+    }
+    // Axes labels
+    ctx.fillStyle='#585d7a'; ctx.font='9px Space Mono,monospace';
+    ctx.textAlign='center'; ctx.fillText('λ',ml+pw*.5,mt+ph+32);
+    ctx.save(); ctx.translate(14,mt+ph*.5); ctx.rotate(-Math.PI*.5);
+    ctx.fillText('N(λ)',0,0); ctx.restore();
+
+    // Weyl line
+    ctx.strokeStyle='#c9a74888'; ctx.lineWidth=1.5; ctx.setLineDash([7,5]);
+    ctx.beginPath(); ctx.moveTo(lx(0),ny(0)); ctx.lineTo(lx(maxL),ny(maxL/4)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#c9a748cc'; ctx.font='italic 10px EB Garamond,serif'; ctx.textAlign='left';
+    ctx.fillText('N(λ) ∼ λ/4  (Weyl)',lx(145),ny(145/4)-9);
+
+    // Staircase up to n
+    if(n>0){
+      ctx.strokeStyle='#22b5aa'; ctx.lineWidth=2;
+      ctx.beginPath();
+      let px2=lx(0), py2=ny(0); ctx.moveTo(px2,py2);
+      for(let i=0;i<n;i++){
+        const x=lx(ev[i]), y=ny(i+1);
+        ctx.lineTo(x,py2); ctx.lineTo(x,y);
+        px2=x; py2=y;
+      }
+      ctx.lineTo(lx(ev[n-1]+2),py2); ctx.stroke();
+
+      // Animated eigenvalue dot
+      if(n>0){
+        const ex=lx(ev[n-1]), ey=ny(n);
+        const grd=ctx.createRadialGradient(ex,ey,0,ex,ey,12);
+        grd.addColorStop(0,'rgba(34,181,170,.8)');
+        grd.addColorStop(1,'rgba(34,181,170,0)');
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(ex,ey,12,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#22b5aa'; ctx.beginPath(); ctx.arc(ex,ey,3,0,Math.PI*2); ctx.fill();
+      }
+    }
+    // N(λ) label
+    ctx.fillStyle='#22b5aa'; ctx.font='10px Space Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText(`N(λ) [${n}/${ev.length}]`,lx(200),ny(ev.length)*.5+mt);
+  }
+
+  let weylRunning=false;
+  function runWeyl(){
+    weylRunning=true; animN=0;
+    function step(){
+      if(!weylRunning) return;
+      drawWeyl(animN);
+      if(animN<ev.length){ animN++; setTimeout(step, animN<5?250:animN<20?90:32); }
+    }
+    step();
+  }
+  drawWeyl(0);
+
+  // Trigger on scroll
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting && !weylRunning) runWeyl();});
+  },{threshold:.25});
+  obs.observe(document.getElementById('sec-weyl'));
+
+  document.getElementById('weyl-replay').addEventListener('click',()=>{
+    weylRunning=false; setTimeout(()=>runWeyl(),50);
+  });
+  document.getElementById('weyl-replay').addEventListener('mouseenter',function(){
+    this.style.borderColor='var(--gold)'; this.style.background='var(--surface)';
+  });
+  document.getElementById('weyl-replay').addEventListener('mouseleave',function(){
+    this.style.borderColor='var(--border)'; this.style.background='transparent';
+  });
+}
+
+// =============================================================
+// §06 — ISOSPECTRAL GWW DRUMS (animated)
+// =============================================================
+{
+  const shapes=[
+    [[0,3],[1,3],[1,4],[3,4],[3,3],[2,3],[2,2],[3,2],[3,0],[2,0],[2,1],[0,1]],
+    [[0,2],[1,2],[1,4],[2,4],[2,3],[3,3],[3,1],[2,1],[2,0],[1,0],[1,1],[0,1]]
+  ];
+  const drumColors=['#c9a748','#22b5aa'];
+  const drumCanvases=[document.getElementById('drum1'),document.getElementById('drum2')];
+  let isoT=0;
+
+  function drawGWW(cv,which,t){
+    const ctx=cv.getContext('2d');
+    const W=cv.width, H=cv.height;
+    const u=Math.min(W,H)/5.5;
+    const pts=shapes[which];
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys);
+    const offX=W/2-(mnx+mxx)/2*u, offY=H/2-(mny+mxy)/2*u;
+    const toC=([x,y])=>[offX+x*u,offY+y*u];
+
+    ctx.fillStyle='#0c0e1a'; ctx.fillRect(0,0,W,H);
+
+    // Animated membrane fill (pulsing color)
+    const pulse=(Math.sin(t*ZEROS[0][0]*.5)+1)/2;
+    const r=Math.round(12+pulse*(201-12));
+    const g=Math.round(14+pulse*(167-14));
+    const b_=Math.round(26+pulse*(72-26));
+
+    // grid
+    ctx.strokeStyle=drumColors[which]+'15'; ctx.lineWidth=.5;
+    for(let x=0;x<=4;x++){ctx.beginPath();ctx.moveTo(offX+x*u,offY);ctx.lineTo(offX+x*u,offY+4*u);ctx.stroke();}
+    for(let y=0;y<=4;y++){ctx.beginPath();ctx.moveTo(offX,offY+y*u);ctx.lineTo(offX+4*u,offY+y*u);ctx.stroke();}
+    for(let d=-4;d<=4;d++){
+      ctx.beginPath();
+      ctx.moveTo(offX+Math.max(0,d)*u,offY+Math.max(0,-d)*u);
+      ctx.lineTo(offX+Math.min(4,4+d)*u,offY+Math.min(4,4-d)*u);
+      ctx.stroke();
+    }
+
+    // Fill with animated color
+    ctx.beginPath();
+    pts.forEach(([x,y],i)=>{const[cx,cy]=toC([x,y]);i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);});
+    ctx.closePath();
+    ctx.fillStyle=`rgba(${r},${g},${b_},0.35)`;
+    ctx.fill();
+
+    // Outline
+    ctx.strokeStyle=drumColors[which]; ctx.lineWidth=2;
+    ctx.beginPath();
+    pts.forEach(([x,y],i)=>{const[cx,cy]=toC([x,y]);i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);});
+    ctx.closePath();
+    // Glow
+    ctx.shadowColor=drumColors[which]; ctx.shadowBlur=8+4*pulse;
+    ctx.stroke(); ctx.shadowBlur=0;
+  }
+
+  function isoFrame(){
+    requestAnimationFrame(isoFrame);
+    isoT+=.014;
+    drawGWW(drumCanvases[0],0,isoT);
+    drawGWW(drumCanvases[1],1,isoT);
+  }
+  isoFrame();
+
+  // EV table
+  const syms=['λ₁','λ₂','λ₃','λ₄','λ₅','λ₆','λ₇','λ₈'];
+  ['ev1','ev2'].forEach(id=>{
+    const div=document.getElementById(id);
+    syms.forEach((s,i)=>{
+      const row=document.createElement('div');
+      row.className='ev-row';
+      row.innerHTML=`<span>${i+1}</span><span>${s} ✓</span>`;
+      div.appendChild(row);
+    });
+  });
+}
+
+// =============================================================
+// SCROLL FADE-IN
+// =============================================================
+{
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('vis'); });
+  },{threshold:.08});
+  document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+}
+</script>
+
+</body>
+</html>
