@@ -258,6 +258,13 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineSegmentsGeometry.js"></script>
+
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineMaterial.js"></script>
+
+<script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineSegments2.js"></script>
+
 <script src="https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 
@@ -452,13 +459,20 @@ function rebuildTree(R) {
   const ptScale = camZ / 5.0;
 
   if (edgePos.length) {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(edgePos, 3));
-    g.setAttribute('color',    new THREE.Float32BufferAttribute(edgeCol, 3));
-    edgeMesh = new THREE.LineSegments(g, new THREE.LineBasicMaterial({
-      vertexColors: true, transparent: true, opacity: 0.84,
-      blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
+    const geo = new THREE.LineSegmentsGeometry();
+    geo.setPositions(edgePos);
+    geo.setColors(edgeCol);
+    const panel = document.getElementById('left-panel');
+    const mat = new THREE.LineMaterial({
+      vertexColors: true,
+      linewidth: 3.5,          // pixels — broadcast-quality thickness
+      transparent: true,
+      opacity: 0.92,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      resolution: new THREE.Vector2(panel.clientWidth || 800, panel.clientHeight || 600),
+    });
+    edgeMesh = new THREE.LineSegments2(geo, mat);
     edgeMesh.visible = true;
     treeGroup.add(edgeMesh);
   }
@@ -499,6 +513,10 @@ function resizeTree() {
   treeRenderer.setSize(w, h);
   treeCamera.aspect = w / h;
   treeCamera.updateProjectionMatrix();
+  // Update fat-line resolution so linewidth stays in pixels
+  if (edgeMesh && edgeMesh.material && edgeMesh.material.resolution) {
+    edgeMesh.material.resolution.set(w, h);
+  }
 }
 
 // Tree interaction
@@ -641,6 +659,10 @@ let globe=null;
 
 function updateGlobe(){
   if(!globe) return;
+
+  // Sync label colors with current city.color
+  globe.htmlElementsData(CITIES);
+
   const allPts=[], allArcs=[];
   const r=globalR;
   CITIES.forEach((city,i)=>{
