@@ -60,6 +60,24 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    .panel-subtitle {
+      position: absolute;
+      bottom: 18px; left: 0; right: 0;
+      text-align: center;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 13px;
+      font-style: italic;
+      color: rgba(180, 200, 255, 0.55);
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: 0.02em;
+    }
+
+    .panel-subtitle .katex {
+      color: rgba(180, 200, 255, 0.55);
+      font-size: 13px;
+    }
+
     /* RIGHT: Globe */
     #right-panel {
       flex: 1;
@@ -91,6 +109,15 @@
       white-space: nowrap;
       pointer-events: none;
       user-select: none;
+    }
+
+    .city-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
     }
 
     #homepage-link {
@@ -243,6 +270,7 @@
     <div id="left-panel">
       <canvas id="tree-canvas"></canvas>
       <div class="panel-hint">drag · rotate &nbsp;|&nbsp; shift-drag · pan &nbsp;|&nbsp; scroll · zoom</div>
+      <div class="panel-subtitle">4-valent tree in 3D, with equal edge lengths</div>
     </div>
 
     <!-- RIGHT: Globe -->
@@ -250,6 +278,7 @@
       <div id="globe-container"></div>
       <div id="city-labels"></div>
       <div class="panel-hint">drag · rotate &nbsp;|&nbsp; shift-drag · pan &nbsp;|&nbsp; scroll · zoom</div>
+      <div class="panel-subtitle" id="right-subtitle"></div>
       <div id="loading"><div class="spinner"></div><p>loading atlas…</p></div>
       <a id="homepage-link" href="https://kimsh.kr" target="_blank">kimsh.kr</a>
     </div>
@@ -262,7 +291,7 @@
       <span class="bar-label">Radius</span>
       <button class="cbtn" id="btn-dec" onclick="setRadius(globalR-1)" disabled>&#8722;</button>
       <span id="rval">0</span>
-      <input type="range" id="rslider" min="0" max="12" value="0" step="1"
+      <input type="range" id="rslider" min="0" max="6" value="0" step="1"
              oninput="setRadius(+this.value)">
       <button class="cbtn" id="btn-inc" onclick="setRadius(globalR+1)">&#43;</button>
     </div>
@@ -277,6 +306,8 @@
   </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineSegmentsGeometry.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/lines/LineMaterial.js"></script>
@@ -287,12 +318,19 @@
 <script>
 'use strict';
 
+// Render math subtitle
+katex.render(
+  String.raw`\text{rotations by } \arccos\!\left(\tfrac{1}{3}\right)`,
+  document.getElementById('right-subtitle'),
+  { throwOnError: false, displayMode: false }
+);
+
 // ═══════════════════════════════════════════════════
 // SHARED STATE
 // ═══════════════════════════════════════════════════
 let globalR  = 0;
 let showArcs = true;
-const MAX_R  = 12;
+const MAX_R  = 6;
 
 // ═══════════════════════════════════════════════════
 // THREE.JS TREE  (left panel)
@@ -354,8 +392,10 @@ function nodeColor(d, maxD) {
 }
 
 function ptRadius(k) {
+  // Returns size in PIXELS (sizeAttenuation: false)
+  // Edge linewidth = 3.5px → vertices must be >= 7px
   const n = k === 0 ? 1 : 4 * Math.pow(3, k - 1);
-  return 0.165 / Math.sqrt(n);
+  return Math.max(7, 22 / Math.sqrt(n));
 }
 
 const DIR = [[1,0],[0,1],[-1,0],[0,-1]];
@@ -415,8 +455,10 @@ treeRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 treeRenderer.setClearColor(0x06101e, 1);
 
 const treeScene  = new THREE.Scene();
-const treeCamera = new THREE.PerspectiveCamera(52, 1, 0.001, 300);
-treeCamera.position.set(0, 0, 3);
+// Orthographic camera — true xy projection, no perspective distortion
+const treeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, 3000);
+treeCamera.position.set(0, 0, 10);
+let orthoHalfH = 1.6;  // half-height in world units; scroll adjusts this
 
 // Stars
 (() => {
@@ -455,24 +497,22 @@ function rebuildTree(R) {
   disposeTree();
   const { edgePos, edgeCol, levelVtx, zL } = buildTreeData(R);
 
-  let minF = 1, xyAcc = 0;
-  for (let k = 0; k < R; k++) {
-    const Lk  = S0 / Math.pow(BRAT, k);
-    const dzK = Math.sqrt(Math.max(0, 1 - Lk * Lk));
-    const req = k > 0 ? xyAcc * dzK / Lk - Math.abs(zL[k]) : 0;
-    minF = Math.max(minF, req);
-    xyAcc += Lk;
-  }
-  const camZ  = minF * 2.5;
-  const xyMax = S0 * BRAT / (BRAT - 1);
-  const fovDeg = 2 * Math.atan(xyMax * 1.5 / Math.max(1, camZ)) * 180 / Math.PI;
-  treeCamera.fov  = Math.max(0.5, Math.min(52, fovDeg));
-  treeCamera.position.set(0, 0, camZ);
-  treeCamera.near = 0.001;
-  treeCamera.far  = Math.max(camZ * 4 + Math.abs(zL[R]) + 1, 3000);
+  // Orthographic: fit the full tree in view with some padding
+  const xyMax = S0 * BRAT / (BRAT - 1);   // geometric-series xy limit
+  orthoHalfH = xyMax * 1.2;
+  const panel2 = document.getElementById('left-panel');
+  const aspect2 = panel2.clientWidth / Math.max(1, panel2.clientHeight);
+  treeCamera.left   = -orthoHalfH * aspect2;
+  treeCamera.right  =  orthoHalfH * aspect2;
+  treeCamera.top    =  orthoHalfH;
+  treeCamera.bottom = -orthoHalfH;
+  treeCamera.near   = 0.001;
+  treeCamera.far    = 3000;
+  treeCamera.position.set(0, 0, 10);
   treeCamera.updateProjectionMatrix();
-  maxTreeCamZ = camZ * 20;
-  const ptScale = camZ / 5.0;
+  maxTreeCamZ = 100;  // not used for perspective any more, kept for compat
+
+  const ptScale = 2.5;  // fixed scale — no perspective depth
 
   if (edgePos.length) {
     const geo = new THREE.LineSegmentsGeometry();
@@ -500,9 +540,10 @@ function rebuildTree(R) {
     g.setAttribute('position', new THREE.Float32BufferAttribute(lv.pos, 3));
     g.setAttribute('color',    new THREE.Float32BufferAttribute(lv.col, 3));
     const m = new THREE.Points(g, new THREE.PointsMaterial({
-      vertexColors: true, size: ptRadius(k) * ptScale,
+      vertexColors: true, size: ptRadius(k),
       transparent: true, opacity: 1.0,
-      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+      sizeAttenuation: false,
     }));
     treeGroup.add(m);
     ptMeshes.push(m);
@@ -527,7 +568,12 @@ function resizeTree() {
   const w = panel.clientWidth, h = panel.clientHeight;
   if (w < 1 || h < 1) return;
   treeRenderer.setSize(w, h);
-  treeCamera.aspect = w / h;
+  const aspect = w / h;
+  const cx = treeCamera.position.x, cy = treeCamera.position.y;
+  treeCamera.left   = cx - orthoHalfH * aspect;
+  treeCamera.right  = cx + orthoHalfH * aspect;
+  treeCamera.top    = cy + orthoHalfH;
+  treeCamera.bottom = cy - orthoHalfH;
   treeCamera.updateProjectionMatrix();
   // Update fat-line resolution so linewidth stays in pixels
   if (edgeMesh && edgeMesh.material && edgeMesh.material.resolution) {
@@ -538,7 +584,7 @@ function resizeTree() {
 // Tree interaction
 let tRotDrag=false, trlx=0, trly=0, trvx=0, trvy=0;
 let tPanDrag=false, tplx=0, tply=0, tpvx=0, tpvy=0;
-const treePanScale = () => treeCamera.position.z * 0.0012;
+const treePanScale = () => orthoHalfH * 0.002;
 
 function tStartRot(x,y) { tRotDrag=true; trlx=x; trly=y; trvx=trvy=0; }
 function tMoveRot(x,y)  {
@@ -550,10 +596,18 @@ function tMoveRot(x,y)  {
 function tStartPan(x,y) { tPanDrag=true; tplx=x; tply=y; tpvx=tpvy=0; }
 function tMovePan(x,y)  {
   if(!tPanDrag) return;
-  const s=treePanScale();
+  const s = orthoHalfH * 0.003;
   tpvx=-(x-tplx)*s; tpvy=(y-tply)*s;
   treeCamera.position.x-=(x-tplx)*s;
   treeCamera.position.y+=(y-tply)*s;
+  // Keep ortho frustum centered on camera position
+  const panel = document.getElementById('left-panel');
+  const aspect = panel.clientWidth / Math.max(1, panel.clientHeight);
+  treeCamera.left   = treeCamera.position.x - orthoHalfH * aspect;
+  treeCamera.right  = treeCamera.position.x + orthoHalfH * aspect;
+  treeCamera.top    = treeCamera.position.y + orthoHalfH;
+  treeCamera.bottom = treeCamera.position.y - orthoHalfH;
+  treeCamera.updateProjectionMatrix();
   tplx=x; tply=y;
 }
 function tEndAll() { tRotDrag=false; tPanDrag=false; }
@@ -586,10 +640,9 @@ treeCanvas.addEventListener('touchend', tEndAll);
 
 treeCanvas.addEventListener('wheel', e=>{
   e.preventDefault();
-  const nz = treeCamera.position.z*(1+e.deltaY*0.0012);
-  treeCamera.position.z = Math.max(0.001, Math.min(maxTreeCamZ, nz));
-  treeCamera.far = Math.max(treeCamera.far, treeCamera.position.z*8);
-  treeCamera.updateProjectionMatrix();
+  orthoHalfH *= (1 + e.deltaY * 0.001);
+  orthoHalfH = Math.max(0.2, Math.min(20, orthoHalfH));
+  resizeTree();
 }, {passive:false});
 
 // Tree render loop
@@ -608,14 +661,15 @@ treeCanvas.addEventListener('wheel', e=>{
 // GLOBE  (right panel)
 // ═══════════════════════════════════════════════════
 const CITIES = [
-  { name:'Seoul',    lat:37.5665,  lng:126.978,  color:'#FF2040' },  // neon red
-  { name:'Warsaw',   lat:52.2297,  lng:21.0122,  color:'#FF8000' },  // neon orange
-  { name:'London',   lat:51.5074,  lng:-0.1278,  color:'#00FF88' },  // neon green
-  { name:'Tokyo',    lat:35.6762,  lng:139.6503, color:'#FFE600' },  // neon yellow
-  { name:'Beijing',  lat:39.9042,  lng:116.4074, color:'#00CFFF' },  // neon cyan
-  { name:'Baghdad',  lat:33.3152,  lng:44.3661,  color:'#CC00FF' },  // neon purple
-  { name:'Honolulu', lat:21.3069,  lng:-157.858, color:'#FF0080' },  // neon pink
+  { name:'Seoul',    lat:37.5665,  lng:126.978,  color:'#FF2040' },
+  { name:'Warsaw',   lat:52.2297,  lng:21.0122,  color:'#FF8000' },
+  { name:'London',   lat:51.5074,  lng:-0.1278,  color:'#00FF88' },
+  { name:'Tokyo',    lat:35.6762,  lng:139.6503, color:'#FFE600' },
+  { name:'Beijing',  lat:39.9042,  lng:116.4074, color:'#00CFFF' },
+  { name:'Baghdad',  lat:33.3152,  lng:44.3661,  color:'#CC00FF' },
+  { name:'Honolulu', lat:21.3069,  lng:-157.858, color:'#FF0080' },
 ];
+CITIES.forEach(c => c.renderedColor = c.color);
 
 const GCOS=1/3, GSIN=Math.sqrt(8/9);
 const MAT_E=[[GCOS,-GSIN,0],[GSIN,GCOS,0],[0,0,1]];
@@ -680,12 +734,13 @@ function updateGlobe(){
   CITIES.forEach((city,i)=>{
     const {nodes,arcs}=getOrbit(i,r);
     nodes.forEach(node=>{
-      const pos = node.depth===0 ? {lat:city.lat,lng:city.lng} : gToLL(node.vec);
-      const alpha = node.depth===0 ? 1.0 : Math.max(0.30,0.95-node.depth*0.07);
+      if(node.depth===0) return; // origin dot rendered as DOM element in label overlay
+      const pos = gToLL(node.vec);
+      const alpha = Math.max(0.30,0.95-node.depth*0.07);
       allPts.push({lat:pos.lat,lng:pos.lng,
-        color:gHexA(city.color,alpha),
-        radius: node.depth===0 ? 0.6 : Math.max(0.36,1.26-node.depth*0.10),
-        altitude: node.depth===0 ? 0.015 : 0.01});
+        color:gHexA(city.renderedColor,alpha),
+        radius: Math.max(0.36,1.26-node.depth*0.10),
+        altitude: 0.01});
     });
     if(showArcs){
       arcs.forEach(arc=>{
@@ -794,30 +849,42 @@ async function initGlobe(){
   // ── Custom city labels (RAF loop for always-correct color) ──────────
   const labelContainer = document.getElementById('city-labels');
   const labelEls = CITIES.map(city => {
+    const dot = document.createElement('div');
+    dot.className = 'city-dot';
+    labelContainer.appendChild(dot);
+
     const el = document.createElement('div');
     el.className = 'city-label';
     el.textContent = city.name;
     labelContainer.appendChild(el);
-    return { el, city };
+
+    return { el, dot, city };
   });
 
   function updateLabels() {
     requestAnimationFrame(updateLabels);
     const containerRect = document.getElementById('globe-container').getBoundingClientRect();
-    labelEls.forEach(({ el, city }) => {
-      // Always sync color directly from CITIES array
-      el.style.color = city.color;
-      el.style.textShadow = `0 0 7px ${city.color}99, 0 1px 4px #000c`;
+    labelEls.forEach(({ el, dot, city }) => {
+      // Single source of truth: city.color, read once per frame
+      const c = city.color;
+      el.style.color = c;
+      el.style.textShadow = `0 0 7px ${c}99, 0 1px 4px #000c`;
+      dot.style.background = c;
+      dot.style.boxShadow = `0 0 6px ${c}bb`;
 
-      const coords = globe.getScreenCoords(city.lat, city.lng, 0.02);
-      if (!coords) { el.style.display = 'none'; return; }
+      const coords = globe.getScreenCoords(city.lat, city.lng, 0.015);
+      if (!coords) { el.style.display = 'none'; dot.style.display = 'none'; return; }
 
-      // Hide labels on the back of the globe (coords returns undefined or offscreen)
       const x = coords.x, y = coords.y;
-      const offscreen = x < -50 || x > containerRect.width + 50 || y < -50 || y > containerRect.height + 50;
-      el.style.display = offscreen ? 'none' : 'block';
-      el.style.left = x + 'px';
-      el.style.top  = y + 'px';
+      const offscreen = x < -50 || x > containerRect.width + 50
+                     || y < -50 || y > containerRect.height + 50;
+      const vis = offscreen ? 'none' : 'block';
+      el.style.display = vis;
+      dot.style.display = vis;
+      el.style.left  = x + 'px';
+      el.style.top   = y + 'px';
+      dot.style.left = x + 'px';
+      dot.style.top  = y + 'px';
     });
   }
   updateLabels();
