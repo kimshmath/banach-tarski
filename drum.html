@@ -154,31 +154,42 @@ footer{border-top:1px solid var(--border);max-width:1160px;margin:0 auto;padding
 @keyframes bannerPulse{0%,100%{box-shadow:0 4px 30px rgba(201,167,72,.2)}50%{box-shadow:0 4px 40px rgba(201,167,72,.45)}}
 #audio-banner:not(.hidden){animation:bannerPulse 2.5s ease-in-out infinite}
 
-/* ===== STICKY NAVBAR ===== */
-#navbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 1.6rem;background:rgba(5,6,12,.82);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background .3s}
-#navbar.scrolled{background:rgba(5,6,12,.96);border-bottom-color:var(--border)}
-.nav-brand{display:flex;align-items:center;gap:.6rem;text-decoration:none}
-.nav-brand-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);flex-shrink:0;animation:dotPulse 3s ease-in-out infinite}
-@keyframes dotPulse{0%,100%{box-shadow:0 0 6px var(--gold)}50%{box-shadow:0 0 14px var(--gold), 0 0 28px rgba(201,167,72,.4)}}
-.nav-brand-text{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.18em;text-transform:lowercase;color:var(--gold);transition:color .2s}
-.nav-brand:hover .nav-brand-text{color:var(--cream)}
-.nav-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.88rem;color:var(--muted);position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .4s}
-.nav-title.show{opacity:.7}
-.nav-right{display:flex;align-items:center;gap:.8rem}
-.nav-section{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:0;transition:opacity .4s}
-.nav-section.show{opacity:.8}
-body{padding-top:44px}
-#brand-corner{position:fixed;bottom:1.5rem;left:1.5rem;z-index:998;opacity:.55;transition:opacity .25s}
-#brand-corner:hover{opacity:1}
-#brand-corner a{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-decoration:none;color:var(--gold);text-transform:lowercase;background:rgba(5,6,12,.7);border:1px solid var(--border);border-radius:100px;padding:.38rem .9rem;backdrop-filter:blur(8px);display:flex;align-items:center;gap:.45rem}
-#brand-corner a::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
-.hud-brand{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s;padding:.3rem .5rem;border-left:1px solid var(--border)}
-.hud-brand:hover{color:var(--gold)}
-.s-brand{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.18em;text-transform:lowercase;color:var(--border);float:right;margin-top:.1rem;text-decoration:none;transition:color .2s}
-.s-brand:hover{color:var(--gold)}
-.footer-brand a{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.18em;text-transform:lowercase;color:var(--gold);text-decoration:none;transition:color .2s,text-shadow .2s}
-.footer-brand a:hover{color:var(--cream);text-shadow:0 0 18px var(--gold)}
+/* ===== BRAND CORNER — fluorescent, left-bottom only ===== */
+#brand-corner{position:fixed;bottom:1.8rem;left:1.8rem;z-index:998;transition:transform .25s}
+#brand-corner:hover{transform:translateY(-2px)}
+#brand-corner a{font-family:'Space Mono',monospace;font-size:.95rem;letter-spacing:.22em;text-decoration:none;text-transform:lowercase;color:#00ffaa;display:flex;align-items:center;transition:color .3s}
+#brand-corner a:hover{color:#80ffda;text-shadow:0 0 18px #00ffaa}
+/* Remove hud-brand, s-brand from view */
+.hud-brand{display:none}
+.s-brand{display:none}
+.footer-brand a{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.18em;text-transform:lowercase;color:#00ffaa;text-decoration:none;transition:color .2s,text-shadow .2s}
+.footer-brand a:hover{color:#80ffda;text-shadow:0 0 18px #00ffaa}
 .footer-brand-sep{color:var(--border);font-size:.8rem}
+/* ===== BEAT PICKER — fix visibility ===== */
+.bp{font-family:'Space Mono',monospace;font-size:.62rem;padding:.4rem .8rem;border:1.5px solid #2a2e45;border-radius:100px;background:#0d0f1a;color:#9099bc;cursor:pointer;transition:all .2s;white-space:nowrap}
+.bp:hover{border-color:#c9a74888;color:#c9a748}
+.bp.sel-a{border-color:#c9a748;color:#c9a748;background:#1a150000;box-shadow:0 0 10px rgba(201,167,72,.2)}
+.bp.sel-b{border-color:#22b5aa;color:#22b5aa;background:#001a1800;box-shadow:0 0 10px rgba(34,181,170,.2)}
+.beat-play-btn{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;padding:.55rem 1.4rem;border:1.5px solid #22b5aa;border-radius:100px;background:#001a18;color:#22b5aa;cursor:pointer;transition:all .25s;margin-top:1.2rem;display:inline-flex;align-items:center;gap:.5rem}
+.beat-play-btn:hover{background:#00302c;box-shadow:0 0 16px rgba(34,181,170,.3);color:#4dd9cf}
+/* ===== §04b THREE MODES ===== */
+.three-selectors{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-top:2rem}
+@media(max-width:650px){.three-selectors{grid-template-columns:1fr}}
+.mode-sel-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem}
+.mode-sel-panel h4{font-family:'Space Mono',monospace;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.9rem;color:var(--gold)}
+.mode-sel-panel select{width:100%;background:#0d0f1a;border:1px solid var(--border);border-radius:6px;padding:.45rem .7rem;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--text);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none}
+.three-canvas-row{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:1rem;margin-top:1.5rem;align-items:start}
+@media(max-width:800px){.three-canvas-row{grid-template-columns:1fr 1fr}}
+.three-mini{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.three-mini canvas{width:100%;aspect-ratio:1;display:block}
+.three-mini-lbl{font-family:'Space Mono',monospace;font-size:.56rem;color:var(--muted);padding:.45rem .7rem;text-align:center;line-height:1.6}
+.three-super{background:var(--surface);border:1.5px solid var(--teal);border-radius:8px;overflow:hidden;box-shadow:0 0 20px rgba(34,181,170,.12)}
+.three-super canvas{width:100%;aspect-ratio:1;display:block}
+.three-super-lbl{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--teal);padding:.5rem .8rem;text-align:center}
+.three-play-btn{font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;padding:.55rem 1.4rem;border:1.5px solid var(--gold);border-radius:100px;background:#100d00;color:var(--gold);cursor:pointer;transition:all .25s;margin-top:1.2rem;display:inline-flex;align-items:center;gap:.5rem}
+.three-play-btn:hover{background:#1e1600;box-shadow:0 0 16px rgba(201,167,72,.3)}
+.three-info{margin-top:1rem;font-family:'Space Mono',monospace;font-size:.63rem;color:var(--muted);line-height:2;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem}
+.three-info b{color:var(--teal)}
 .gww-construction{margin-top:3rem}
 .gww-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:2rem;align-items:start}
 @media(max-width:700px){.gww-grid{grid-template-columns:1fr}}
@@ -211,18 +222,6 @@ body{padding-top:44px}
 </style>
 </head>
 <body>
-
-<!-- STICKY NAVBAR -->
-<nav id="navbar">
-  <a href="https://kimsh.kr" target="_blank" rel="noopener" class="nav-brand">
-    <span class="nav-brand-dot"></span>
-    <span class="nav-brand-text">kimsh.kr</span>
-  </a>
-  <span class="nav-title" id="nav-title">Why Can You Hear the Shape of a Drum?</span>
-  <div class="nav-right">
-    <span class="nav-section" id="nav-section"></span>
-  </div>
-</nav>
 
 <!-- BRAND CORNER -->
 <div id="brand-corner"><a href="https://kimsh.kr" target="_blank" rel="noopener">kimsh.kr</a></div>
@@ -355,6 +354,55 @@ body{padding-top:44px}
       <div class="beat-info" id="beat-info-b"></div>
     </div>
   </div>
+</div>
+
+<hr class="divider">
+
+<!-- §04b THREE MODES -->
+<div class="wrap fi" id="sec-three">
+  <div class="s-num">§ 04b — Three-Mode Interference</div>
+  <h2 class="s-title">When Three Modes<br>Meet</h2>
+  <div class="prose" style="margin-bottom:1.5rem">
+    <p>With three modes the superposition <span class="math">φ_A cos(ω_A t) + φ_B cos(ω_B t) + φ_C cos(ω_C t)</span> generates richer interference. When no two frequency differences are commensurate, the pattern is <em>quasi-periodic</em> — never repeating exactly, yet bounded. The beating structure becomes a tangle of three rhythms at once.</p>
+    <p>Choose any three modes and hear the combination. Watch how the spatial pattern morphs as the three standing waves drift in and out of phase.</p>
+  </div>
+
+  <div class="three-selectors">
+    <div class="mode-sel-panel" style="border-color:#c9a74855">
+      <h4 style="color:#c9a748">Mode A</h4>
+      <select id="three-sel-a"></select>
+    </div>
+    <div class="mode-sel-panel" style="border-color:#22b5aa55">
+      <h4 style="color:#22b5aa">Mode B</h4>
+      <select id="three-sel-b"></select>
+    </div>
+    <div class="mode-sel-panel" style="border-color:#c0456055">
+      <h4 style="color:#c04560">Mode C</h4>
+      <select id="three-sel-c"></select>
+    </div>
+  </div>
+
+  <div class="three-canvas-row">
+    <div class="three-mini" style="border-color:#c9a74855">
+      <canvas id="three-cv-a" width="220" height="220"></canvas>
+      <div class="three-mini-lbl" id="three-lbl-a" style="color:#c9a748">Mode A</div>
+    </div>
+    <div class="three-mini" style="border-color:#22b5aa55">
+      <canvas id="three-cv-b" width="220" height="220"></canvas>
+      <div class="three-mini-lbl" id="three-lbl-b" style="color:#22b5aa">Mode B</div>
+    </div>
+    <div class="three-mini" style="border-color:#c0456055">
+      <canvas id="three-cv-c" width="220" height="220"></canvas>
+      <div class="three-mini-lbl" id="three-lbl-c" style="color:#c04560">Mode C</div>
+    </div>
+    <div class="three-super">
+      <canvas id="three-cv-sum" width="260" height="260"></canvas>
+      <div class="three-super-lbl">A + B + C</div>
+    </div>
+  </div>
+
+  <button class="three-play-btn" id="three-play-btn">▶ Play all three tones</button>
+  <div class="three-info" id="three-info"></div>
 </div>
 
 <hr class="divider">
@@ -1167,10 +1215,11 @@ function paintSuperBuf(ctx, W, H, bufs, tfs, bg=[5,6,12]) {
     picker.innerHTML='';
     BMODES.forEach((bm,i)=>{
       const btn=document.createElement('button');
-      btn.className='bp'+(i===selA||i===selB?' sel':'');
+      let cls='bp';
+      if(i===selA) cls+=' sel-a';
+      else if(i===selB) cls+=' sel-b';
+      btn.className=cls;
       btn.textContent=bm.label;
-      if(i===selA) btn.style.borderColor='var(--gold)';
-      if(i===selB) btn.style.borderColor='var(--teal)';
       btn.addEventListener('click',()=>{
         if(i===selA||i===selB) return;
         selA=selB; selB=i; buildPicker();
@@ -1200,6 +1249,118 @@ function paintSuperBuf(ctx, W, H, bufs, tfs, bg=[5,6,12]) {
     infB.innerHTML=`Beat period: 1/|f₁−f₂| = ${(1/beatHz).toFixed(3)} s\n|f₁−f₂| = ${beatHz.toFixed(2)} Hz`;
   }
   bFrame();
+}
+
+// ================================================================
+// §04b — THREE MODES
+// ================================================================
+{
+  const ALL3 = [];
+  for (const [ms, zeros] of Object.entries(ZEROS)) {
+    const m = parseInt(ms);
+    zeros.forEach((z, n) => {
+      ALL3.push({ m, n, z, label: `(m=${m},n=${n+1})  j=${z.toFixed(3)}  ω=${(z*110/2.404826).toFixed(1)}Hz` });
+    });
+  }
+  ALL3.sort((a,b)=>a.z-b.z);
+
+  const selIds = ['three-sel-a','three-sel-b','three-sel-c'];
+  const defaults = [0, 2, 4]; // (0,1), (1,1), (2,1)
+  selIds.forEach((id, si) => {
+    const sel = document.getElementById(id);
+    ALL3.forEach((md, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = md.label;
+      if (i === defaults[si]) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  });
+
+  const RES3 = 220, RSUP = 260;
+  const cvA = document.getElementById('three-cv-a'), ctxA = cvA.getContext('2d');
+  const cvB = document.getElementById('three-cv-b'), ctxB = cvB.getContext('2d');
+  const cvC = document.getElementById('three-cv-c'), ctxC = cvC.getContext('2d');
+  const cvS = document.getElementById('three-cv-sum'), ctxS = cvS.getContext('2d');
+  const lblA = document.getElementById('three-lbl-a');
+  const lblB = document.getElementById('three-lbl-b');
+  const lblC = document.getElementById('three-lbl-c');
+  const info = document.getElementById('three-info');
+
+  let idxA = defaults[0], idxB = defaults[1], idxC = defaults[2];
+  let bufA, bufB, bufC;
+
+  function rebuildBufs() {
+    bufA = buildBuf(RES3, RES3, ALL3[idxA].m, ALL3[idxA].n);
+    bufB = buildBuf(RES3, RES3, ALL3[idxB].m, ALL3[idxB].n);
+    bufC = buildBuf(RSUP, RSUP, ALL3[idxC].m, ALL3[idxC].n); // will rebuild below
+    bufC = buildBuf(RES3, RES3, ALL3[idxC].m, ALL3[idxC].n);
+    // also need sum-res buffers
+    bufA_s = buildBuf(RSUP, RSUP, ALL3[idxA].m, ALL3[idxA].n);
+    bufB_s = buildBuf(RSUP, RSUP, ALL3[idxB].m, ALL3[idxB].n);
+    bufC_s = buildBuf(RSUP, RSUP, ALL3[idxC].m, ALL3[idxC].n);
+  }
+  let bufA_s, bufB_s, bufC_s;
+  rebuildBufs();
+
+  function updateLabels() {
+    const md = [ALL3[idxA], ALL3[idxB], ALL3[idxC]];
+    lblA.textContent = `Mode A · (m=${md[0].m},n=${md[0].n+1}) · ${modeFreqHz(md[0].m,md[0].n).toFixed(1)} Hz`;
+    lblB.textContent = `Mode B · (m=${md[1].m},n=${md[1].n+1}) · ${modeFreqHz(md[1].m,md[1].n).toFixed(1)} Hz`;
+    lblC.textContent = `Mode C · (m=${md[2].m},n=${md[2].n+1}) · ${modeFreqHz(md[2].m,md[2].n).toFixed(1)} Hz`;
+
+    const fA = modeFreqHz(md[0].m,md[0].n), fB = modeFreqHz(md[1].m,md[1].n), fC = modeFreqHz(md[2].m,md[2].n);
+    const dAB = Math.abs(fA-fB), dAC = Math.abs(fA-fC), dBC = Math.abs(fB-fC);
+    info.innerHTML =
+      `<b>f_A</b> = ${fA.toFixed(2)} Hz  &nbsp; <b>f_B</b> = ${fB.toFixed(2)} Hz  &nbsp; <b>f_C</b> = ${fC.toFixed(2)} Hz\n` +
+      `|f_A−f_B| = ${dAB.toFixed(2)} Hz  &nbsp; beat period: ${dAB>0.01?(1/dAB).toFixed(3):'∞'} s\n` +
+      `|f_A−f_C| = ${dAC.toFixed(2)} Hz  &nbsp; beat period: ${dAC>0.01?(1/dAC).toFixed(3):'∞'} s\n` +
+      `|f_B−f_C| = ${dBC.toFixed(2)} Hz  &nbsp; beat period: ${dBC>0.01?(1/dBC).toFixed(3):'∞'} s`;
+  }
+  updateLabels();
+
+  document.getElementById('three-sel-a').addEventListener('change', e => { idxA=+e.target.value; rebuildBufs(); updateLabels(); });
+  document.getElementById('three-sel-b').addEventListener('change', e => { idxB=+e.target.value; rebuildBufs(); updateLabels(); });
+  document.getElementById('three-sel-c').addEventListener('change', e => { idxC=+e.target.value; rebuildBufs(); updateLabels(); });
+
+  // Hold three tones
+  let threeOscs = [];
+  function stopThreeTones() {
+    if (!audioCtx) { threeOscs=[]; return; }
+    threeOscs.forEach(({osc,gain})=>{
+      gain.gain.setTargetAtTime(0,audioCtx.currentTime,.05);
+      osc.stop(audioCtx.currentTime+.3);
+    });
+    threeOscs=[];
+  }
+  document.getElementById('three-play-btn').addEventListener('click', async () => {
+    await ensureAudio();
+    if (muted) return;
+    stopThreeTones();
+    [ALL3[idxA],ALL3[idxB],ALL3[idxC]].forEach(md => {
+      const osc=audioCtx.createOscillator(); osc.type='sine';
+      osc.frequency.value=modeFreqHz(md.m,md.n);
+      const g=audioCtx.createGain();
+      g.gain.setValueAtTime(0,audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.12,audioCtx.currentTime+.05);
+      osc.connect(g); g.connect(masterGain); osc.start();
+      threeOscs.push({osc,gain:g});
+    });
+    setTimeout(()=>stopThreeTones(), 5000);
+  });
+
+  let tT = 0;
+  function threeFrame() {
+    requestAnimationFrame(threeFrame);
+    tT += .014;
+    const zA=ALL3[idxA].z, zB=ALL3[idxB].z, zC=ALL3[idxC].z;
+    const tfA=Math.cos(zA*tT*.5), tfB=Math.cos(zB*tT*.5), tfC=Math.cos(zC*tT*.5);
+    paintBuf(ctxA, RES3, RES3, bufA, tfA, [12,10,5]);
+    paintBuf(ctxB, RES3, RES3, bufB, tfB, [5,12,10]);
+    paintBuf(ctxC, RES3, RES3, bufC, tfC, [12,5,10]);
+    paintSuperBuf(ctxS, RSUP, RSUP, [bufA_s,bufB_s,bufC_s], [tfA,tfB,tfC], [10,11,18]);
+  }
+  threeFrame();
 }
 
 // ================================================================
@@ -1372,49 +1533,6 @@ function paintSuperBuf(ctx, W, H, bufs, tfs, bg=[5,6,12]) {
     const div=document.getElementById(id);
     syms.forEach((s,i)=>{ const row=document.createElement('div'); row.className='ev-row'; row.innerHTML=`<span>${i+1}</span><span>${s} ✓</span>`; div.appendChild(row); });
   });
-}
-
-// ================================================================
-// NAVBAR — scroll-aware section label + title fade
-// ================================================================
-{
-  const navbar   = document.getElementById('navbar');
-  const navTitle = document.getElementById('nav-title');
-  const navSec   = document.getElementById('nav-section');
-
-  const SECTIONS = [
-    { id:'hero',       label:'' },
-    { id:'sec-strike', label:'§01 The Voice of a Drum' },
-    { id:'sec-phasor', label:'§02 Phasor Constellation' },
-    { id:'sec-modes',  label:'§03 Eigenmodes' },
-    { id:'sec-beat',   label:'§04 Beating Modes' },
-    { id:'sec-weyl',   label:'§05 Weyl\'s Law' },
-    { id:'sec-iso',    label:'§06 Gordon–Webb–Wolpert' },
-  ];
-
-  let lastSec = '';
-  function onScroll() {
-    const sy = window.scrollY;
-    navbar.classList.toggle('scrolled', sy > 60);
-
-    // Show title after scrolling past hero
-    const heroH = document.getElementById('hero').offsetHeight;
-    navTitle.classList.toggle('show', sy > heroH * 0.6);
-
-    // Detect current section
-    let current = SECTIONS[0];
-    for (const s of SECTIONS) {
-      const el = document.getElementById(s.id);
-      if (el && el.getBoundingClientRect().top <= 90) current = s;
-    }
-    if (current.label !== lastSec) {
-      lastSec = current.label;
-      navSec.textContent = current.label;
-      navSec.classList.toggle('show', !!current.label);
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
 }
 {
   const obs=new IntersectionObserver(entries=>{
